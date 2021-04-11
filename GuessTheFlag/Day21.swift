@@ -8,17 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var text = ""
+    @State private var text = "- - - -"
     @State private var showAlert = false
+    let secretCode = "1 0 0 9"
 
-
-    
     var body: some View {
         ZStack {
             Color.yellow.edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 10) {
-                Text("Enter the secret code")
+                Text(text)
                     .font(.title)
                     .padding()
                 
@@ -27,8 +26,7 @@ struct ContentView: View {
                         ForEach(0 ..< 3) { col in
                             let num = row * 3 + col + 1
                             Button(action: {
-                                text += String(num)
-                                checkCode()
+                                enterNumber(num)
                             }) {
                                 Image(systemName: "\(num).circle.fill")
                                     .renderingMode(.original)
@@ -39,20 +37,45 @@ struct ContentView: View {
                         }
                     }
                 }
+                
+                Button(action: {
+                    enterNumber(0)
+                }) {
+                    Image(systemName: "0.circle.fill")
+                        .renderingMode(.original)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 50)
+                }
             }
             
             .alert(isPresented: $showAlert) {
-                Alert(title: Text("SUCCESS!"), message: Text("You entered the secret code!"), dismissButton: .default(Text("Dismiss")))
+                Alert(title: Text("SUCCESS!"), message: Text("You entered the secret code!"), dismissButton: Alert.Button.default(Text("Ok"), action: {
+                    text = "- - - -"
+                }))
+            }
+        }
+    }
+    
+    func enterNumber(_ number: Int) {
+        if let nextDashLocation = text.firstIndex(of: "-") {
+            text.remove(at: nextDashLocation)
+            text.insert(contentsOf: "\(number)", at: nextDashLocation)
+        }
+        
+        if text.last != "-" {
+            checkCode()
+            if !showAlert {
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
+                    text = "- - - -"
+                }
             }
         }
     }
     
     func checkCode() {
-        if text.count == 4 {
-            if text == "1119" {
-                showAlert = true
-            }
-            text = ""
+        if text == secretCode {
+            showAlert = true
         }
     }
 }
