@@ -26,6 +26,12 @@ struct ContentView: View {
     @State private var scoreTitle = ""
     @State private var scoreMessage = ""
     @State private var score = 0
+    
+    @State private var rotationAmount = 0.0
+    @State private var fadeAmount = 1.0
+    @State private var incorrect = false
+
+
 
     var body: some View {
         ZStack {
@@ -46,6 +52,12 @@ struct ContentView: View {
                         flagTapped(number)
                     }) {
                         FlagImage(country: countries[number])
+                            .overlay(incorrect ? Capsule().fill(Color.red.opacity(0.5)) : nil)
+                            .opacity(number != correctAnswer ? fadeAmount : 1)
+                            .rotation3DEffect(
+                                .degrees(number == correctAnswer ? rotationAmount : 0.0),
+                                axis: (x: 0.0, y: 1.0, z: 0.0)
+                            )
                     }
                 }
                 
@@ -70,17 +82,28 @@ struct ContentView: View {
             scoreTitle = "Correct!"
             scoreMessage = "You recieved +1 points"
             score += 1
+            withAnimation {
+                rotationAmount += 360
+                fadeAmount = 0.25
+            }
         } else {
             scoreTitle = "Wrong!"
             scoreMessage = "That's the flag of \(countries[number])"
+            withAnimation {
+                incorrect = true
+            }
         }
         
-        showingAlert = true
+        DispatchQueue.main.asyncAfter(deadline: .now()+1) {
+            showingAlert = true
+        }
     }
     
     func askQuestion() {
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+        fadeAmount = 1.0
+        incorrect = false
     }
 }
 
